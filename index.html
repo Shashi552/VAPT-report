@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerability Assessment Report</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="report-header">
+    <h1>Vulnerability Assessment & Penetration Test Report</h1>
+    <p><strong>Client:</strong> Central Michigan University (CMU)</p>
+    <p><strong>Targets of Assessment:</strong> CMU Public Web Infrastructure</p>
+    <p><strong>Date of Report:</strong> August 17, 2025</p>
+    <p><strong>Report Version:</strong> 1.1</p>
+</header>
+
+
+<section id="executive-summary">
+    <h2>1. Executive Summary</h2>
+    <p>This report details the findings of a security assessment conducted on Central Michigan University's internet-facing web applications. The primary objective was to identify and assess security vulnerabilities that could be exploited by a malicious actor.</p>
+    
+    <h3>Overall Risk Posture</h3>
+    <p>The overall security posture of the assessed infrastructure is determined to be <strong>CRITICAL</strong>. The assessment uncovered multiple critical-risk vulnerabilities, including several that allow for unauthenticated remote code execution (RCE) and subdomain takeover. These flaws could allow an attacker to gain complete control over affected servers, host malicious content on university domains, and cause significant data breach and reputational damage.</p>
+
+    <h3>Summary of Findings</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Severity</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><span class="severity-tag tag-critical">Critical</span></td><td>5</td></tr>
+            <tr><td><span class="severity-tag tag-high">High</span></td><td>8</td></tr>
+            <tr><td><span class="severity-tag tag-medium">Medium</span></td><td>6</td></tr>
+            <tr><td><span class="severity-tag tag-low">Low</span></td><td>3</td></tr>
+            <tr><td><span class="severity-tag tag-informational">Informational</span></td><td>2</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Key Strategic Recommendations</h3>
+    <ul>
+        <li><strong>Immediate Patching & Remediation:</strong> Prioritize the immediate remediation of all <strong>Critical</strong> and <strong>High</strong> severity vulnerabilities. This includes patching Log4Shell (CVE-2021-44228), removing the dangling DNS record causing the subdomain takeover, and updating legacy Nginx and SharePoint installations.</li>
+        <li><strong>Internal Audit:</strong> Conduct an urgent internal audit to confirm the presence of vulnerable SharePoint instances, outdated SimpleSAMLphp libraries, and review web cache configurations.</li>
+        <li><strong>Secure Coding Practices:</strong> Enforce secure coding and development practices, focusing on input validation and output encoding to eliminate Cross-Site Scripting (XSS) vulnerabilities. Implement a Content Security Policy (CSP) across all web applications.</li>
+        <li><strong>Configuration Management:</strong> Review web server and application configurations to disable directory listings, remove default pages, and prevent verbose error message disclosure. Ensure all cookies are transmitted with `Secure` and `HttpOnly` flags.</li>
+    </ul>
+</section>
+
+<section id="technical-details">
+    <h2>2. Technical Details & Methodology</h2>
+    <h3>2.1 Scope</h3>
+    <p>The assessment focused on publicly accessible domains and hosts associated with Central Michigan University, including but not limited to: `cbalab.cmich.edu`, `cmichmaestro.cmich.edu`, `filesender.se.cmich.edu`, `d175137.dynamic.cmich.edu`, `bline.cmich.edu`, `dar.cmich.edu`, `apps.cmich.edu`, `cdn.cmich.edu`, `archive.applymed.cmich.edu`, `aux-helium.cmich.edu`, `blogs.cmich.edu`, `blackboard.cmich.edu`, `mirror.cmich.edu`, `libapps.cmich.edu`, `www.cmich.edu`, `galaxy.phy.cmich.edu`, `francesa.phy.cmich.edu`.</p>
+
+    <h3>2.2 Technologies Identified</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Host</th>
+                <th>Technology</th>
+                <th>Version</th>
+                <th>Source</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>`aux-helium.cmich.edu`</td>
+                <td>Nginx</td>
+                <td>1.6.2</td>
+                <td>Service Banner</td>
+            </tr>
+            <tr>
+                <td>`mirrors.cmich.edu`</td>
+                <td>Nginx (Ubuntu)</td>
+                <td>1.18.0</td>
+                <td>Nmap Scan</td>
+            </tr>
+            <tr>
+                <td>`bline.cmich.edu`, `dar.cmich.edu`</td>
+                <td>Microsoft IIS</td>
+                <td>Legacy (Unspecified)</td>
+                <td>Service Banner / Behavior</td>
+            </tr>
+            <tr>
+                <td>`apps.cmich.edu`, `libapps.cmich.edu`</td>
+                <td>ASP.NET</td>
+                <td>Unspecified</td>
+                <td>Error Messages / File Extensions</td>
+            </tr>
+            <tr>
+                <td>`blogs.cmich.edu`</td>
+                <td>WordPress</td>
+                <td>Unspecified</td>
+                <td>Meta Tags / Directory Structure</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>2.3 Assessment Methodology & Tools</h3>
+    <p>The assessment was conducted using a combination of automated scanning and manual penetration testing techniques. The following tools were utilized to identify and verify vulnerabilities:</p>
+    <ul>
+        <li><strong>Nmap:</strong> Used for network discovery, port scanning, and service version identification.</li>
+        <li><strong>Burp Suite Professional:</strong> Used for intercepting and manipulating HTTP/S traffic, automated vulnerability scanning, and manual exploitation.</li>
+        <li><strong>Custom Scripts:</strong> Python scripts were developed to test for specific vulnerabilities and automate repetitive tasks.</li>
+        <li><strong>Public Exploit Databases:</strong> Resources such as Exploit-DB and GitHub were consulted for publicly available proof-of-concept code.</li>
+    </ul>
+</section>
+
+<section id="findings">
+    <h2>3. Vulnerability Findings</h2>
+    
+    <h3>Critical Risk Vulnerabilities</h3>
+    <div class="finding severity-critical">
+        <h4>1. Remote Code Execution via Log4Shell (CVE-2021-44228)</h4>
+        <p><strong>Host:</strong> `cbalab.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-critical">Critical</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 10.0 (AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H)</p>
+        <p><strong>Reference:</strong> CWE-502 (Deserialization of Untrusted Data), OWASP A06:2021</p>
+        <p><strong>Description:</strong> The VMware Horizon instance is vulnerable to the Log4Shell vulnerability, which allows an unauthenticated attacker to execute arbitrary code by sending a malicious JNDI lookup string in an HTTP header.</p>
+        <p><strong>Business Impact:</strong> A successful exploit would grant an attacker complete control over the server, leading to data theft, malware deployment, and a pivot point into the internal network.</p>
+        <p><strong>Remediation:</strong> Immediately apply the patches specified in VMware Security Advisory VMSA-2021-0028.</p>
+    </div>
+
+    <div class="finding severity-critical">
+        <h4>2. Chained Exploit Leading to Remote Code Execution</h4>
+        <p><strong>Host:</strong> `cmichmaestro.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-critical">Critical</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 9.9 (AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H)</p>
+        <p><strong>Reference:</strong> CWE-79 (XSS), CWE-352 (CSRF), CWE-120 (Buffer Overflow)</p>
+        <p><strong>Description:</strong> A stored Cross-Site Scripting (XSS) vulnerability can be used to execute a Cross-Site Request Forgery (CSRF) attack against a logged-in administrator. This CSRF attack then triggers a buffer overflow to achieve remote code execution.</p>
+        <p><strong>Business Impact:</strong> This complex chain allows a low-privilege attacker to ultimately gain full administrative and system-level control over the LISTSERV Maestro application and server.</p>
+        <p><strong>Remediation:</strong> Apply patches from the vendor. Implement robust input validation and output encoding to mitigate XSS. Utilize anti-CSRF tokens throughout the application to prevent CSRF attacks.</p>
+    </div>
+
+    <div class="finding severity-critical">
+        <h4>3. Remote Code Execution via Server-Side Template Injection (SSTI - CVE-2024-45186)</h4>
+        <p><strong>Hosts:</strong> `filesender.se.cmich.edu`, `d175137.dynamic.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-critical">Critical</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 9.8 (AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)</p>
+        <p><strong>Reference:</strong> CWE-1336 (Improper Neutralization of Expressions in Templates), OWASP A03:2021</p>
+        <p><strong>Description:</strong> The FileSender application improperly processes user-supplied input in a backend template engine, allowing attackers to inject commands that are executed by the server.</p>
+        <p><strong>Business Impact:</strong> Attackers can gain a reverse shell, read sensitive files, or steal cloud credentials from the server environment.</p>
+        <p><strong>Remediation:</strong> Update the FileSender application to the latest version. Ensure user-supplied input is never passed directly to a template engine for processing.</p>
+    </div>
+
+    <div class="finding severity-critical">
+        <h4>4. Potential Unauthenticated RCE via SharePoint "ToolShell" (CVE-2025-53770)</h4>
+        <p><strong>Hosts:</strong> `bline.cmich.edu`, `dar.cmich.edu`, `apps.cmich.edu`, `cdn.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-critical">Critical</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 9.8 (AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H) - *Conditional*</p>
+        <p><strong>Reference:</strong> OWASP A06:2021-Vulnerable and Outdated Components</p>
+        <p><strong>Description:</strong> These servers run legacy versions of IIS, which are common hosts for on-premise SharePoint installations potentially vulnerable to the "ToolShell" attack. <strong>Internal confirmation is required.</strong></p>
+        <p><strong>Business Impact:</strong> If vulnerable, an attacker could gain complete control of the SharePoint server, exfiltrate all university data, and use stolen keys to impersonate any user on the network.</p>
+        <p><strong>Remediation:</strong> Conduct an immediate internal audit to verify if SharePoint is installed. If found, apply all security updates, rotate ASP.NET machine keys, and restart IIS.</p>
+    </div>
+
+    <div class="finding severity-critical">
+        <h4>5. Buffer Overflow in Nginx (CVE-2014-3616)</h4>
+        <p><strong>Host:</strong> `aux-helium.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-critical">Critical</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 9.8 (AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)</p>
+        <p><strong>Reference:</strong> CWE-120 (Buffer Overflow), OWASP A06:2021</p>
+        <p><strong>Description:</strong> Nginx version 1.6.2 is vulnerable to a buffer overflow when processing chunked transfer encoding requests, leading to Denial of Service or potential Remote Code Execution.</p>
+        <p><strong>Business Impact:</strong> An attacker could crash the web server or potentially disclose sensitive memory contents, leading to full system compromise.</p>
+        <p><strong>Remediation:</strong> Immediately upgrade the Nginx package using `sudo apt-get install --only-upgrade nginx`.</p>
+    </div>
+
+    <h3>High Risk Vulnerabilities</h3>
+    <div class="finding severity-high">
+        <h4>6. Subdomain Takeover via Dangling DNS Record</h4>
+        <p><strong>Host:</strong> `cmich.edu` (via CNAME record)</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-high">High</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 8.6 (AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:L/A:N)</p>
+        <p><strong>Reference:</strong> CWE-552 (Files or Directories Accessible to External Parties), OWASP A01:2021-Broken Access Control</p>
+        <p><strong>Description:</strong> A DNS CNAME record for a subdomain of `cmich.edu` points to an Amazon S3 bucket that no longer exists or has been deprovisioned. This allows an attacker to claim the S3 bucket and host arbitrary, malicious content on a trusted university subdomain.</p>
+        <p><strong>Business Impact:</strong> Enables highly convincing phishing attacks, malware distribution, and brand damage, as the malicious content is served from a legitimate `cmich.edu` domain.</p>
+        <p><strong>Remediation:</strong> Immediately identify and remove the dangling DNS CNAME record from the `cmich.edu` DNS zone. Audit all external DNS pointers to ensure they resolve to active, owned resources.</p>
+        <div class="poc-section">
+            <h4>Proof of Concept</h4>
+            <p>Navigating to the subdomain results in an AWS "NoSuchBucket" error, confirming the resource is unclaimed.</p>
+            <img src="img5.png" alt="NoSuchBucket Error on S3">
+        </div>
+    </div>
+    
+    <div class="finding severity-high">
+         <h4>7. Stored Cross-Site Scripting (XSS) on University Libraries Application</h4>
+        <p><strong>Host:</strong> `libapps.cmich.edu`</p>
+        <p><strong>URL:</strong> `/SooImages/list`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-high">High</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 8.8 (AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H)</p>
+        <p><strong>Reference:</strong> CWE-79 (Improper Neutralization of Input During Web Page Generation), OWASP A03:2021-Injection</p>
+        <p><strong>Description:</strong> The search functionality in the "Soo Locks Images" application is vulnerable to stored XSS. An attacker can inject malicious JavaScript code into the search field, which is then stored and executed in the browser of any user who views the page, including administrators.</p>
+        <p><strong>Business Impact:</strong> Allows an attacker to steal session cookies, hijack administrator sessions, deface the website, or redirect users to malicious sites to harvest credentials.</p>
+        <p><strong>Remediation:</strong> Implement strong input validation on all user-supplied data. Apply context-aware output encoding before rendering user input back to the page. Implement a Content Security Policy (CSP) as a defense-in-depth measure.</p>
+        <div class="poc-section">
+            <h4>Proof of Concept</h4>
+            <p>The following payload was injected into the search bar, resulting in a successful JavaScript alert execution.</p>
+            <pre>&lt;img src=x onerror=alert('XSS')&gt;</pre>
+            <img src="img10.png" alt="XSS Popup on libapps.cmich.edu">
+        </div>
+    </div>
+
+    <div class="finding severity-high">
+         <h4>8. XML External Entity (XXE) and Signature Confusion (CVE-2025-27773 / CVE-2024-52806)</h4>
+        <p><strong>Hosts:</strong> `filesender.se.cmich.edu`, `d175137.dynamic.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-high">High</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 8.6 (AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N)</p>
+        <p><strong>Reference:</strong> CWE-611 (Improper Restriction of XML External Entity Reference), OWASP A05:2021</p>
+        <p><strong>Description:</strong> The SimpleSAMLphp library accepts malformed SAML assertions, allowing an attacker to inject XXE payloads to read local files from the server.</p>
+        <p><strong>Business Impact:</strong> Attackers can exfiltrate sensitive files, such as configuration files containing passwords, source code, and system files.</p>
+        <p><strong>Remediation:</strong> Perform an internal audit to identify the version of SimpleSAMLphp and upgrade to the latest patched release.</p>
+    </div>
+
+    <div class="finding severity-high">
+        <h4>9. HTTP Request Smuggling (CVE-2024-42179)</h4>
+        <p><strong>Host:</strong> `archive.applymed.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-high">High</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 8.1 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:L/A:N)</p>
+        <p><strong>Reference:</strong> CWE-444 (Inconsistent Interpretation of HTTP Requests), OWASP A10:2021</p>
+        <p><strong>Description:</strong> The server is vulnerable to request smuggling, where ambiguous HTTP requests are interpreted differently by front-end and back-end systems.</p>
+        <p><strong>Business Impact:</strong> Can be exploited to hijack user sessions, bypass security controls, poison the web cache, and steal sensitive data submitted by other users.</p>
+        <p><strong>Remediation:</strong> Normalize ambiguous requests at the network edge (WAF/proxy). Enable the request smuggling filter in IIS and upgrade proxy servers.</p>
+    </div>
+    
+    <div class="finding severity-high">
+        <h4>10. Client-Side Desynchronization</h4>
+        <p><strong>Host:</strong> `blackboard.cmich.edu`</p>
+        <p><strong>URLs:</strong> `/bn/login.pl`, `/bn/admin/cm_removecourses.pl`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-high">High</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 7.5 (AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N) - *Tentative*</p>
+        <p><strong>Reference:</strong> CWE-444 (Inconsistent Interpretation of HTTP Requests)</p>
+        <p><strong>Description:</strong> The application is potentially vulnerable to client-side desynchronization. This occurs when a single request from an intermediary, like a reverse proxy, is interpreted as multiple requests by the back-end server, which can desynchronize the connection and lead to response queue poisoning.</p>
+        <p><strong>Business Impact:</strong> A successful exploit could allow an attacker to capture the responses intended for other users, potentially exposing sensitive data or session information.</p>
+        <p><strong>Remediation:</strong> Review the configuration of all intermediary devices (proxies, load balancers) to ensure strict adherence to RFC standards for HTTP requests. Normalize ambiguous requests at the network edge.</p>
+         <div class="poc-section">
+            <h4>Proof of Concept</h4>
+            <p>Automated scanning with Burp Suite identified two endpoints as potentially vulnerable.</p>
+            <img src="img11.png" alt="Client-Side Desync finding in Burp Suite">
+        </div>
+    </div>
+
+    <div class="finding severity-high">
+        <h4>11. Local Privilege Escalation via Outdated Nginx (CVE-2016-1247)</h4>
+        <p><strong>Host:</strong> `aux-helium.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-high">High</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 7.8 (AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H)</p>
+        <p><strong>Reference:</strong> CWE-269 (Improper Privilege Management)</p>
+        <p><strong>Description:</strong> The Nginx 1.6.2 installation has insecure log directory permissions, which can be leveraged to write to arbitrary files as root, leading to a full privilege escalation.</p>
+        <p><strong>Business Impact:</strong> If an attacker gains initial low-privilege access, this flaw allows them to escalate to the `root` user and gain complete control of the server.</p>
+        <p><strong>Remediation:</strong> Immediately upgrade the Nginx package using `sudo apt-get install --only-upgrade nginx`.</p>
+    </div>
+
+    <div class="finding severity-high">
+        <h4>12. Stored Cross-Site Scripting (XSS) in WordPress Plugin (CVE-2025-3742)</h4>
+        <p><strong>Host:</strong> `blogs.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-high">High</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 8.0 (AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H)</p>
+        <p><strong>Reference:</strong> CWE-79 (XSS), OWASP A03:2021</p>
+        <p><strong>Description:</strong> The "Responsive Lightbox & Gallery" plugin is vulnerable to stored XSS. An authenticated user can inject malicious JavaScript that executes in an administrator's browser.</p>
+        <p><strong>Business Impact:</strong> This allows an attacker to steal an administrator's session cookie, hijack their session, and gain full administrative control of the WordPress site.</p>
+        <p><strong>Remediation:</strong> Update the "Responsive Lightbox & Gallery" plugin to version 2.5.1 or newer. Audit existing posts for malicious scripts.</p>
+    </div>
+
+    <div class="finding severity-high">
+        <h4>13. Massive Information Disclosure of Student & Course Data</h4>
+        <p><strong>Host:</strong> `blackboard.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-high">High</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 7.5 (AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N)</p>
+        <p><strong>Reference:</strong> CWE-200 (Exposure of Sensitive Information), OWASP A01:2021</p>
+        <p><strong>Description:</strong> The application allows unauthenticated access to sensitive student and course data by manipulating URL parameters. This is a form of Insecure Direct Object Reference (IDOR).</p>
+        <p><strong>Business Impact:</strong> This constitutes a major data privacy violation. The harvested data can be used to launch highly effective, targeted phishing campaigns.</p>
+        <p><strong>Remediation:</strong> Implement proper authorization checks on all endpoints that serve student or course data to ensure that only authenticated and authorized users can access the information.</p>
+    </div>
+
+    <h3>Medium Risk Vulnerabilities</h3>
+    <div class="finding severity-medium">
+        <h4>14. Reflected Cross-Site Scripting (XSS) in Main Search Functionality</h4>
+        <p><strong>Host:</strong> `www.cmich.edu`</p>
+        <p><strong>URL:</strong> `/search`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-medium">Medium</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 6.1 (AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N)</p>
+        <p><strong>Reference:</strong> CWE-79 (XSS), OWASP A03:2021-Injection</p>
+        <p><strong>Description:</strong> The main website's search functionality reflects user-supplied input back to the page without proper sanitization. An attacker can craft a malicious URL containing a JavaScript payload, and if a victim clicks the link, the script will execute in their browser in the context of the `www.cmich.edu` domain.</p>
+        <p><strong>Business Impact:</strong> Can be used for phishing attacks, session cookie theft, or redirecting users to malicious websites.</p>
+        <p><strong>Remediation:</strong> Apply context-aware output encoding to all user-supplied data before it is rendered in the HTML response.</p>
+        <div class="poc-section">
+            <h4>Proof of Concept</h4>
+            <p>The search query is reflected on the page, as shown by both a test string and a potential XSS payload.</p>
+            <img src="img6.png" alt="Test string reflected in search results">
+            <img src="img4.png" alt="XSS payload reflected in search results">
+        </div>
+    </div>
+    
+    <div class="finding severity-medium">
+        <h4>15. Web Cache Deception</h4>
+        <p><strong>Host:</strong> `blackboard.cmich.edu`</p>
+        <p><strong>URL:</strong> `/webapps/login/`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-medium">Medium</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 5.9 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N)</p>
+        <p><strong>Reference:</strong> CWE-444 (Inconsistent Interpretation of HTTP Requests)</p>
+        <p><strong>Description:</strong> The application is vulnerable to Web Cache Deception. An attacker can trick the caching mechanism into storing a user's sensitive, private content and then access it directly via a crafted URL. This is achieved by requesting a non-existent file (e.g., `style.css`) on a page containing sensitive data.</p>
+        <p><strong>Business Impact:</strong> An attacker could access sensitive information from a victim's account page, such as personal details, course information, or messages.</p>
+        <p><strong>Remediation:</strong> Configure the cache to only cache static files based on their content type. Do not cache pages with sensitive user information. Implement stricter caching rules that prevent caching of dynamic content based on file extension.</p>
+         <div class="poc-section">
+            <h4>Proof of Concept</h4>
+            <p>Automated scanning with Burp Suite identified the login endpoint as vulnerable.</p>
+            <img src="img7.png" alt="Web Cache Deception finding in Burp Suite">
+        </div>
+    </div>
+    
+    <div class="finding severity-medium">
+        <h4>16. Open Directory Listing & Software Supply Chain Risk</h4>
+        <p><strong>Host:</strong> `mirror.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-medium">Medium</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 5.3 (AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N)</p>
+        <p><strong>Reference:</strong> CWE-548 (Exposure of Information Through Directory Listing)</p>
+        <p><strong>Description:</strong> The web server (`nginx 1.18.0`) has directory listing enabled, exposing the file structure of software mirrors. This creates a supply chain risk if an attacker gains write access and replaces legitimate packages with trojanized versions.</p>
+        <p><strong>Business Impact:</strong> University students or staff could download and install malware from what they perceive as a trusted university source.</p>
+        <p><strong>Remediation:</strong> Disable directory listing in the Nginx server configuration by removing the `autoindex on;` directive.</p>
+        <div class="poc-section">
+            <h4>Proof of Concept</h4>
+            <p>Navigating to a directory shows a full index of its contents. An Nmap scan confirmed the server details.</p>
+            <img src="img3.png" alt="Directory Listing on mirrors.cmich.edu">
+            <img src="img9.png" alt="Nmap scan of mirrors.cmich.edu">
+        </div>
+    </div>
+
+    <div class="finding severity-medium">
+        <h4>17. TLS Cookie Without Secure Flag Set</h4>
+        <p><strong>Host:</strong> `blackboard.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-medium">Medium</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 4.3 (AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:N)</p>
+        <p><strong>Reference:</strong> CWE-614 (Sensitive Cookie in HTTPS Session Without 'Secure' Attribute)</p>
+        <p><strong>Description:</strong> A session cookie set by the application over an HTTPS connection is missing the `Secure` flag. This means the browser could transmit the cookie over an unencrypted HTTP connection if the user visits an insecure part of the site or is tricked into doing so.</p>
+        <p><strong>Business Impact:</strong> An attacker in a position to intercept network traffic (e.g., on public Wi-Fi) could steal the session cookie and hijack the user's session.</p>
+        <p><strong>Remediation:</strong> Ensure that all cookies, especially session cookies, are set with the `Secure` flag.</p>
+        <div class="poc-section">
+            <h4>Proof of Concept</h4>
+            <p>Automated scanning with Burp Suite identified the insecure cookie setting.</p>
+            <img src="http://googleusercontent.com/file_content/7" alt="Insecure Cookie finding in Burp Suite">
+        </div>
+    </div>
+    
+    <div class="finding severity-medium">
+        <h4>18. Authorization Bypass via Path Encoding in IIS (CVE-2014-4078)</h4>
+        <p><strong>Hosts:</strong> `apps.cmich.edu`, `bline.cmich.edu`, `cdn.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-medium">Medium</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 6.8 (AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N)</p>
+        <p><strong>Reference:</strong> CWE-284 (Improper Access Control)</p>
+        <p><strong>Description:</strong> An older vulnerability in IIS allows attackers to bypass directory-level authentication by using specially crafted URLs with short-name path encoding (e.g., `/*~1*/`).</p>
+        <p><strong>Business Impact:</strong> An attacker could gain unauthorized access to protected resources, such as administrative panels or sensitive files.</p>
+        <p><strong>Remediation:</strong> Apply all relevant security patches for IIS from Microsoft.</p>
+    </div>
+
+    <div class="finding severity-medium">
+        <h4>19. General Stored Cross-Site Scripting (XSS)</h4>
+        <p><strong>Host:</strong> `blogs.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-medium">Medium</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 5.4 (AV:N/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N)</p>
+        <p><strong>Reference:</strong> CWE-79 (XSS), OWASP A03:2021</p>
+        <p><strong>Description:</strong> The application fails to properly sanitize user-supplied input in areas like comment fields, allowing for the injection of malicious JavaScript.</p>
+        <p><strong>Business Impact:</strong> Can lead to session hijacking, website defacement, or redirection to malicious websites.</p>
+        <p><strong>Remediation:</strong> Implement a Content Security Policy (CSP). Enforce context-aware output encoding on all user-supplied data.</p>
+    </div>
+
+    <h3>Low Risk & Informational Findings</h3>
+    <div class="finding severity-low">
+        <h4>20. Verbose ASP.NET Error Message Disclosure</h4>
+        <p><strong>Host:</strong> `libapps.cmich.edu`</p>
+        <p><strong>Application:</strong> `/SooImages`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-low">Low</span></p>
+        <p><strong>CVSS 3.1 Score:</strong> 3.7 (AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N)</p>
+        <p><strong>Reference:</strong> CWE-209 (Generation of Error Message Containing Sensitive Information)</p>
+        <p><strong>Description:</strong> The application discloses detailed ASP.NET error messages when an exception occurs. These messages contain information about the application's configuration (`web.config`), internal structure, and file paths.</p>
+        <p><strong>Business Impact:</strong> While not directly exploitable, this information can provide an attacker with valuable intelligence for crafting more targeted attacks.</p>
+        <p><strong>Remediation:</strong> Configure the application's `web.config` file to display generic, custom error pages to users by setting `<customErrors mode="On" />`.</p>
+        <div class="poc-section">
+            <h4>Proof of Concept</h4>
+            <p>Triggering an error reveals the detailed server error page.</p>
+            <img src="img8.png" alt="ASP.NET Verbose Error Message">
+        </div>
+    </div>
+    
+    <div class="finding severity-low">
+        <h4>21. Information Disclosure via Public Statistics Directory</h4>
+        <p><strong>Host:</strong> `blackboard.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-low">Low</span></p>
+        <p><strong>Reference:</strong> CWE-200 (Exposure of Sensitive Information)</p>
+        <p><strong>Description:</strong> The `/bbstats/` directory is publicly accessible, exposing detailed web server usage statistics.</p>
+        <p><strong>Remediation:</strong> Revoke public access to the `/bbstats/` directory.</p>
+    </div>
+    <div class="finding severity-low">
+        <h4>22. Verbose ASP.NET Error Messages</h4>
+        <p><strong>Host:</strong> `apps.cmich.edu/invoiceparking/Suggestion`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-low">Low</span></p>
+        <p><strong>Reference:</strong> CWE-209 (Generation of Error Message Containing Sensitive Information)</p>
+        <p><strong>Description:</strong> The application discloses detailed ASP.NET error messages, including stack traces and internal file paths.</p>
+        <p><strong>Remediation:</strong> Configure the application to display generic, custom error pages to users.</p>
+    </div>
+    <div class="finding severity-informational">
+        <h4>23. Default Apache Web Page</h4>
+        <p><strong>Host:</strong> `galaxy.phy.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-informational">Informational</span></p>
+        <p><strong>Description:</strong> The server displays the default Apache installation page, indicating it is not properly configured.</p>
+        <p><strong>Remediation:</strong> Identify the server's owner. If not needed, decommission it. If needed, remove the default page.</p>
+    </div>
+    <div class="finding severity-informational">
+        <h4>24. Default IIS Web Page</h4>
+        <p><strong>Host:</strong> `francesa.phy.cmich.edu`</p>
+        <p><strong>Severity:</strong> <span class="severity-tag tag-informational">Informational</span></p>
+        <p><strong>Description:</strong> The server displays the default IIS installation page, indicating it is not properly configured.</p>
+        <p><strong>Remediation:</strong> Identify the server's owner. If not needed, decommission it. If needed, remove the default page.</p>
+    </div>
+</section>
+
+<section id="conclusion">
+    <h2>4. Conclusion</h2>
+    <p>The security assessment identified severe vulnerabilities within the Central Michigan University web infrastructure. The presence of multiple pathways to remote code execution, subdomain takeover, and high-impact data exposure places the university at a significant risk of a major security breach. We strongly recommend that the IT department allocate resources to address the identified findings, prioritizing the <strong>Critical</strong> and <strong>High</strong> risk vulnerabilities. A follow-up re-test should be conducted after remediation to validate the effectiveness of the applied fixes.</p>
+</section>
+</body>
+</html>
