@@ -1,5 +1,5 @@
 \<div align="center"\>
-\<img src="[https://www.cmich.edu/Images/CMU-Seal-Maroon-1-Color-jpg.jpg](https://www.google.com/search?q=https://www.cmich.edu/Images/CMU-Seal-Maroon-1-Color-jpg.jpg)" alt="CMU Logo" width="150"/\>
+\<img src="[[https://www.cmich.edu/Images/CMU-Seal-Maroon-1-Color-jpg.jpg](https://in.images.search.yahoo.com/yhs/search;_ylt=Awrx.b7sRKVoQEAHBxrnHgx.;_ylu=Y29sbwMEcG9zAzIEdnRpZAMEc2VjA3Ny?p=https%3A%2F%2Fwww.cmich.edu%2Fimages%2Fcmu-seal-maroon-1-color-jpg.jpg&type=fc_A10D2A6D85F_s69_g_e_d_n21018_c999&param1=7&param2=eJwtjtuKgzAYhF8lly3E%2BP85qGmuLNYHWPZqQy5cm9rgEbW47NMvWcowMDDfwHThbo37qBBAcZFb6iZrHEfAwlIXO0tda43TWlvqwmKNQxAsmoNmKLmlrvOzNS5MlrpXY40b598wDE2qGJDTEab7fGxk2gkCA0OOMGXSkJ9MnkmzLIM%2F%2FHcf9lSJnImMnPrnPg6UDKH3pPNtP59J%2B1zn0acoNIMosjWPZg3vSTy2hffZ1%2BbX%2FyzzrIaaQ1IXUiaItzq5FtcsKTGvblpVUpVl5NsIc%2BAqAZGA%2BER14frCkWEOX3%2FWslJb&hsimp=yhs-5302&hspart=fc&ei=UTF-8&fr=yhs-fc-5302&imgurl=https%3A%2F%2Fwww.bing.com%2Fimages%2Fsearch%3Fview%3DdetailV2%26ccid%3D%2Bl4TXrhi%26id%3DFE37534746E30FEEDFCD6B382AE93FB8BB40C1EF%26thid%3DOIP.-l4TXrhiOQdQmP1d57XRegHaEK%26mediaurl%3Dhttps%3A%2F%2Fwww.cmich.edu%2Fimages%2Fdefault-source%2Fgeneral%2Fcmu-logos%2F1600x900_circleactionc_filler_maroon-500k.png%26exph%3D900%26expw%3D1600%26q%3Dhttps%3A%2F%2Fwww.cmich.edu%2Fimages%2Fcmu-seal-maroon-1-color-jpg.jpg%26ck%3DD4A695CD56E71EC2A0542F3A095BD5E6%26idpp%3Drc%26idpview%3Dsingleimage%26form%3Drc2idp&name=https%3A%2F%2Fwww.cmich.edu%2Fimages%2Fcmu-seal-maroon-1-color-jpg.jpg1&turl=https%3A%2F%2Fsp.yimg.com%2Fib%2Fth%2Fid%2FOIP.-l4TXrhiOQdQmP1d57XRegHaEK%3Fpid%3DApi%26w%3D148%26h%3D148%26c%3D7%26dpr%3D2%26rs%3D1&tt=https%3A%2F%2Fwww.cmich.edu%2Fimages%2Fcmu-seal-maroon-1-color-jpg.jpg1&sigit=4taGiBWJXEPZ&sigi=E_mld6NgXKQx&sign=OghncLDrSqV0&sigt=OghncLDrSqV0)](https://www.google.com/search?q=https://www.cmich.edu/Images/CMU-Seal-Maroon-1-Color-jpg.jpg)" alt="CMU Logo" width="150"/\>
 \<h1\>🛡️ VAPT Report: Central Michigan University 🛡️\</h1\>
 \<p\>
 \<strong\>A comprehensive security assessment of CMU's public web infrastructure.\</strong\>
@@ -119,4 +119,5 @@ The assessment employed a hybrid approach, combining automated scanning with in-
 
       - Review the **Executive Summary** for a strategic overview.
       - Prioritize remediation based on the **Critical** and **High** severity vulnerabilities.
+
       - Share relevant sections with development and IT infrastructure teams to implement the recommended fixes.
